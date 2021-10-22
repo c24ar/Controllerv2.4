@@ -21,12 +21,16 @@ public class AutopilotOpModePartII extends OpMode {
     private DcMotor FrontRight;
     private DcMotor BackLeft;
     private DcMotor BackRight;
-    double drive;
-    double turn;
-    double strafe;
-    double realdrive = -gamepad1.left_stick_y;
-    double realstrafe = gamepad1.left_stick_x;
+    double drive = 0.0;
+    double turn = 0.0;
+    double strafe = 0.0;
+    double realdrive = 0.0;
+    double realstrafe = 0.0;
     boolean autopilot = false;
+    double frontLeftPower = 0.0;
+    double frontRightPower = 0.0;
+    double backLeftPower = 0.0;
+    double backRightPower = 0.0;
     //private DcMotor Intake;
     //private DcMotor IntakeRight;
     //private DcMotor Treadmill;
@@ -84,7 +88,7 @@ public class AutopilotOpModePartII extends OpMode {
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     public void isAutopilot() {
-        if (Math.pow(realdrive, 2) + Math.pow(realstrafe, 2) > 0.9) {
+        if (Math.pow(realdrive, 2) + Math.pow(realstrafe, 2) > 0.5) {
             autopilot = true;
             if ((realdrive * drive < 0) || (realstrafe * strafe < 0)) {
                 autopilot = false;
@@ -96,47 +100,35 @@ public class AutopilotOpModePartII extends OpMode {
     }
 
     public void loop() {
-        double threshold = 0.2;
+        //Forward/backward and strafing with the left stick, turning with the right
 
-        if (gamepad1.right_stick_x < -threshold ||  gamepad1.right_stick_x > threshold || gamepad1.left_stick_y < -threshold || gamepad1.left_stick_y > threshold || gamepad1.left_stick_x < -threshold || gamepad1.left_stick_x > threshold) {
-            //Forward/backward and strafing with the left stick, turning with the right
+        realdrive = gamepad1.left_stick_y;
+        realstrafe = -gamepad1.left_stick_x;
+        turn = -gamepad1.right_stick_x;
+        isAutopilot();
 
-            isAutopilot();
-
-            if (autopilot = false) {
-                drive = -gamepad1.left_stick_y;
-                turn = gamepad1.right_stick_x;
-                strafe = gamepad1.left_stick_x;
-            }
-
-            //make sure left and right power are outside threshold
-            double frontLeftPower = Range.clip(drive + turn + strafe, -1.0, 1.0) * 0.8;
-            double frontRightPower = Range.clip(drive - turn - strafe, -1.0, 1.0) * 0.8;
-            double backLeftPower = Range.clip(drive + turn - strafe, -1.0, 1.0) * 0.8;
-            double backRightPower = Range.clip(drive - turn + strafe, -1.0, 1.0) * 0.8;
-
-
-            // public double clip(double number, double min, double max)
-
-            if (Math.abs(frontLeftPower) > threshold || Math.abs(backLeftPower) > threshold || Math.abs(frontRightPower) > threshold || Math.abs(backRightPower) > threshold) {
-                FrontLeft.setPower(frontLeftPower);
-                BackLeft.setPower(backLeftPower);
-                FrontRight.setPower(frontRightPower);
-                BackRight.setPower(backRightPower);
-
-            } else {
-                FrontRight.setPower(0);
-                FrontLeft.setPower(0);
-                BackLeft.setPower(0);
-                BackRight.setPower(0);
-            }
-
-        } else {
-            FrontRight.setPower(0);
-            FrontLeft.setPower(0);
-            BackLeft.setPower(0);
-            BackRight.setPower(0);
+        if (!autopilot) {
+            drive = gamepad1.left_stick_y;
+            strafe = -gamepad1.left_stick_x;
+            frontLeftPower = Range.clip(drive + turn + strafe, -1.0, 1.0) * 0.8;
+            frontRightPower = Range.clip(drive - turn - strafe, -1.0, 1.0) * 0.8;
+            backLeftPower = Range.clip(drive + turn - strafe, -1.0, 1.0) * 0.8;
+            backRightPower = Range.clip(drive - turn + strafe, -1.0, 1.0) * 0.8;
         }
+
+        //make sure left and right power are outside threshold
+
+
+        // public double clip(double number, double min, double max)
+
+        telemetry.addData("drive", drive);
+        telemetry.addData("turn", turn);
+        telemetry.addData("strafe", strafe);
+        telemetry.update();
+        FrontLeft.setPower(frontLeftPower);
+        BackLeft.setPower(backLeftPower);
+        FrontRight.setPower(frontRightPower);
+        BackRight.setPower(backRightPower);
 
 
 
