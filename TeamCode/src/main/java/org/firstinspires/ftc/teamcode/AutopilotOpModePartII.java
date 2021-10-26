@@ -18,25 +18,23 @@ public class AutopilotOpModePartII extends OpMode {
     private DcMotor BackLeft;
     private DcMotor BackRight;
     private DcMotor Intake;
-    double drive = 0.0;
-    double turn = 0.0;
-    double strafe = 0.0;
-    double force = 0.0;
-    double frontLeftPower = 0.0;
-    double frontRightPower = 0.0;
-    double backLeftPower = 0.0;
-    double backRightPower = 0.0;
-    double intakePower = 0.0;
-    boolean unlocked = false;
-    String password = "";
-    double L = 0.0;
-    double R = 0.0;
-    boolean protectionMode = true;
-    double multiplier = 0.25;
-    int intakeSetting = 1;
-    double intakeFactor = 1.0;
-    boolean fullShutdown = false;
-    boolean partyMode = false;
+    double drive;
+    double turn;
+    double strafe;
+    double force;
+    double frontLeftPower;
+    double frontRightPower;
+    double backLeftPower;
+    double backRightPower;
+    double intakePower;
+    boolean protectionMode;
+    double multiplier;
+    int intakeSetting;
+    double intakeFactor;
+    boolean fullShutdown;
+    boolean partyMode;
+    int i;
+    boolean trackingMode;
     //private DcMotor Intake;
     //private DcMotor IntakeRight;
     //private DcMotor Treadmill;
@@ -46,6 +44,23 @@ public class AutopilotOpModePartII extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
+        drive = 0.0;
+        turn = 0.0;
+        strafe = 0.0;
+        force = 0.0;
+        frontLeftPower = 0.0;
+        frontRightPower = 0.0;
+        backLeftPower = 0.0;
+        backRightPower = 0.0;
+        intakePower = 0.0;
+        protectionMode = true;
+        multiplier = 0.25;
+        intakeSetting = 1;
+        intakeFactor = 1.0;
+        fullShutdown = false;
+        partyMode = false;
+        i = 0;
+        trackingMode = false;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -99,7 +114,6 @@ public class AutopilotOpModePartII extends OpMode {
 
     public void loop() {
         if (!fullShutdown) {
-            if (unlocked) {
                 if (partyMode) {
                     int time = 0;
                     while (time < 500) {
@@ -137,66 +151,96 @@ public class AutopilotOpModePartII extends OpMode {
                     partyMode = false;
                 }
                 if (!partyMode) {
-                    if (gamepad1.left_bumper && gamepad1.right_bumper) {
-                        double y_coordinate = gamepad1.left_stick_y;
-                        double x_coordinate = -gamepad1.left_stick_x;
+                    if (gamepad1.b) {
+                        double y_coordinate = -gamepad1.left_stick_x;
+                        double x_coordinate = -gamepad1.left_stick_y;
                         telemetry.addLine("tracking mode on");
                         double distance = Math.sqrt(Math.pow(x_coordinate, 2) + Math.pow(y_coordinate, 2));
-                        if (distance > 5) {
-                            double angle = Math.asin((50 * y_coordinate) / distance);
+                        telemetry.addLine(String.valueOf(distance));
+                        if (distance > 0.0) {
+                            double angle = 50 * Math.asin(y_coordinate / distance);
+                            telemetry.addLine(String.valueOf(angle));
                             int i = 0;
-                            while (i < (50 * angle)) {
-                                frontLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                                frontRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                                backLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                                backRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                                FrontLeft.setPower(0.5 * frontLeftPower);
-                                FrontRight.setPower(0.5 * frontRightPower);
-                                BackLeft.setPower(0.5 * backLeftPower);
-                                BackRight.setPower(0.5 * backRightPower);
-                                i++;
+                            while (i < (5000 * Math.abs(angle * y_coordinate))) {
+                                if (x_coordinate < 0) {
+                                    frontLeftPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
+                                    frontRightPower = Range.clip(angle, -1.0, 1.0) * 0.8;
+                                    backLeftPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
+                                    backRightPower = Range.clip(angle, -1.0, 1.0) * 0.8;
+                                    FrontLeft.setPower(0.5 * frontLeftPower);
+                                    FrontRight.setPower(0.5 * frontRightPower);
+                                    BackLeft.setPower(0.5 * backLeftPower);
+                                    BackRight.setPower(0.5 * backRightPower);
+                                    i++;
+                                }
+                                if (x_coordinate >= 0) {
+                                    frontLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
+                                    frontRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
+                                    backLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
+                                    backRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
+                                    FrontLeft.setPower(0.5 * frontLeftPower);
+                                    FrontRight.setPower(0.5 * frontRightPower);
+                                    BackLeft.setPower(0.5 * backLeftPower);
+                                    BackRight.setPower(0.5 * backRightPower);
+                                    i++;
+                                }
                             }
                             int j = 0;
-                            while (j < (50 * distance)) {
-                                frontLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                                frontRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                                backLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                                backRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                                FrontLeft.setPower(0.5 * frontLeftPower);
-                                FrontRight.setPower(0.5 * frontRightPower);
-                                BackLeft.setPower(0.5 * backLeftPower);
-                                BackRight.setPower(0.5 * backRightPower);
-                                j++;
+                            while (j < (50000 * distance)) {
+                                if (x_coordinate < 0) {
+                                    frontLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
+                                    frontRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
+                                    backLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
+                                    backRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
+                                    FrontLeft.setPower(0.5 * frontLeftPower);
+                                    FrontRight.setPower(0.5 * frontRightPower);
+                                    BackLeft.setPower(0.5 * backLeftPower);
+                                    BackRight.setPower(0.5 * backRightPower);
+                                    j++;
+                                }
+                                if (x_coordinate >= 0) {
+                                    frontLeftPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
+                                    frontRightPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
+                                    backLeftPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
+                                    backRightPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
+                                    FrontLeft.setPower(0.5 * frontLeftPower);
+                                    FrontRight.setPower(0.5 * frontRightPower);
+                                    BackLeft.setPower(0.5 * backLeftPower);
+                                    BackRight.setPower(0.5 * backRightPower);
+                                    j++;
+                                }
                             }
+                            FrontLeft.setPower(0);
+                            FrontRight.setPower(0);
+                            BackLeft.setPower(0);
+                            BackRight.setPower(0);
                             int k = 0;
-                            while (k < 75) {
+                            while (k < 200000) {
                                 intakePower = Range.clip(1.0, -1.0, 1.0) * 0.8;
                                 Intake.setPower(intakePower);
                                 k++;
                             }
-                            distance = 0.0;
-                            y_coordinate = 0.0;
-                            x_coordinate = 0.0;
+                            Intake.setPower(0);
                         }
                     } else {
-                        if (gamepad1.a && protectionMode) {
+                        if (gamepad1.a && !gamepad1.y) {
                             protectionMode = false;
                             multiplier = 1.0;
                         }
-                        if (gamepad1.a && !protectionMode) {
+                        if (gamepad1.a && gamepad1.y) {
                             protectionMode = true;
                             multiplier = 0.25;
                         }
-                        if (gamepad1.options && gamepad1.b) {
+                        if (gamepad1.dpad_down && gamepad1.x) {
                             fullShutdown = true;
                         }
-                        if (gamepad1.x) {
+                        if (gamepad1.x && !gamepad1.dpad_down) {
                             intakeSetting = intakeSetting + 1;
                             if (intakeSetting > 6) {
                                 intakeSetting = 1;
                             }
                         }
-                        if (gamepad1.ps) {
+                        if (gamepad1.y && !gamepad1.a) {
                             partyMode = true;
                         }
                         if (intakeSetting == 1) {
@@ -252,27 +296,6 @@ public class AutopilotOpModePartII extends OpMode {
                     }
                     telemetry.update();
                 }
-            } else {
-                L = gamepad1.left_trigger;
-                R = gamepad1.right_trigger;
-                if (L > 0.5) {
-                    password = password + "L";
-                }
-                if (R > 0.5) {
-                    password = password + "R";
-                }
-                if (password.length() >= 5) {
-                    if (password.equals("RLRRL")) {
-                        telemetry.addLine("unlocked");
-                        telemetry.update();
-                        unlocked = true;
-                    } else {
-                        password = "";
-                        telemetry.addLine("Uh Uh Uh, you didn't say the magic word!");
-                        telemetry.update();
-                    }
-                }
             }
-        }
     }
 }
