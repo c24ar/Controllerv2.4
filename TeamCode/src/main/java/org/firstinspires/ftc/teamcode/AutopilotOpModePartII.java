@@ -116,20 +116,20 @@ public class AutopilotOpModePartII extends OpMode {
         if (!fullShutdown) {
                 if (partyMode) {
                     int time = 0;
-                    while (time < 500) {
-                        if ((time >= 0 && time < 25) || (time >= 75 && time < 125)) {
+                    while (time < 500000) {
+                        if ((time >= 0 && time < 25000) || (time >= 75000 && time < 125000)) {
                             drive = 0;
                             strafe = -1;
                             turn = 0;
                             time = time + 1;
                         }
-                        if ((time >= 25 && time < 75) || (time >= 125 && time < 175)) {
+                        if ((time >= 25000 && time < 75000) || (time >= 125000 && time < 175000)) {
                             drive = 0;
                             strafe = 1;
                             turn = 0;
                             time = time + 1;
                         }
-                        if (time >= 175) {
+                        if (time >= 175000) {
                             drive = 0;
                             strafe = 0;
                             turn = 1;
@@ -148,6 +148,10 @@ public class AutopilotOpModePartII extends OpMode {
                         BackLeft.setPower(backLeftPower);
                         BackRight.setPower(backRightPower);
                     }
+                    FrontLeft.setPower(0);
+                    FrontRight.setPower(0);
+                    BackLeft.setPower(0);
+                    BackRight.setPower(0);
                     partyMode = false;
                 }
                 if (!partyMode) {
