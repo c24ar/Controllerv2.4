@@ -7,6 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+/**
+ * By Narayan the GOAT
+ */
 //@Disabled
 @TeleOp(name="Autopilot OpMode", group="Iterative Opmode")
 public class AutopilotOpModePartII extends OpMode {
@@ -40,6 +43,8 @@ public class AutopilotOpModePartII extends OpMode {
     int i;
     boolean trackingMode;
     double spinFactor;
+    boolean checker;
+    boolean rotation;
     //private DcMotor Intake;
     //private DcMotor IntakeRight;
     //private DcMotor Treadmill;
@@ -70,6 +75,8 @@ public class AutopilotOpModePartII extends OpMode {
         i = 0;
         trackingMode = false;
         spinFactor = 0.0;
+        checker = false;
+        rotation = false;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -124,6 +131,18 @@ public class AutopilotOpModePartII extends OpMode {
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
 
+    public boolean checking(boolean key) {
+        if (key) {
+            checker = true;
+        }
+        if (checker) {
+            if (!key) {
+                checker = false;
+                return true;
+            }
+        }
+        return false;
+    }
     public void loop() {
         if (!fullShutdown) {
             telemetry.addLine("shut down");
@@ -241,24 +260,25 @@ public class AutopilotOpModePartII extends OpMode {
                         Intake.setPower(0);
                     }
                 } else {
-                    if (gamepad1.a && !gamepad1.y) {
+                    if (checking(gamepad1.a) && protectionMode) {
                         protectionMode = false;
                         multiplier = 1.0;
                     }
-                    if (gamepad1.a && gamepad1.y) {
+                    if (checking(gamepad1.a) && !protectionMode) {
                         protectionMode = true;
                         multiplier = 0.25;
                     }
                     if (gamepad1.dpad_down && gamepad1.x) {
                         fullShutdown = true;
                     }
-                    if (gamepad1.dpad_right) {
+                    if (checking(gamepad1.dpad_right)) {
+
                         intakeSetting = intakeSetting + 1;
                         if (intakeSetting > 6) {
                             intakeSetting = 1;
                         }
                     }
-                    if (gamepad1.dpad_left) {
+                    if (checking(gamepad1.dpad_left)) {
                         spinnerSetting = spinnerSetting + 1;
                         if (spinnerSetting > 2) {
                             spinnerSetting = 1;
@@ -293,9 +313,21 @@ public class AutopilotOpModePartII extends OpMode {
                     }
 
                     //Forward/backward and strafing with the left stick, turning with the right
-
+                    if (gamepad1.left_trigger > 0.5) {
+                        rotation = true;
+                    }
+                    if (rotation = true) {
+                        if (gamepad1.left_trigger > 0.5) {
+                            rotation = false;
+                        }
+                    }
+                    if (rotation) {
+                        spin = 1.0;
+                    }
+                    if (!rotation) {
+                        spin = 0.0;
+                    }
                     force = gamepad1.right_trigger;
-                    spin = gamepad1.left_trigger;
                     drive = gamepad1.left_stick_y;
                     strafe = -gamepad1.left_stick_x;
                     turn = -gamepad1.right_stick_x;
