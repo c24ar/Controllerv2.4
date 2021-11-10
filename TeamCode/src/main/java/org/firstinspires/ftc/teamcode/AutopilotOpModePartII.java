@@ -141,13 +141,20 @@ public class AutopilotOpModePartII extends OpMode {
     public void loop() {
         if (gamepad1.b) {
             if (gamepad1.right_trigger > 0.5) {
-                double y_coordinate = -gamepad1.left_stick_x;
+                /*(double y_coordinate = -gamepad1.left_stick_x;
                 double x_coordinate = -gamepad1.left_stick_y;
                 telemetry.addLine("tracking mode on");
                 double distance = Math.sqrt(Math.pow(x_coordinate, 2) + Math.pow(y_coordinate, 2));
                 telemetry.addLine(String.valueOf(distance));
                 telemetry.addLine(String.valueOf(y_coordinate));
                 telemetry.addLine(String.valueOf(x_coordinate));
+                */
+                telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
+                telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
+                telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
+                telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
+                telemetry.update();
+                idle();
                 if (distance > 0.0) {
                     double angle = 50 * Math.asin(y_coordinate / distance);
                     telemetry.addLine(String.valueOf(angle));
