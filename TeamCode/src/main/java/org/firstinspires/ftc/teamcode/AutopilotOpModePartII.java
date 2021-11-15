@@ -22,17 +22,21 @@ public class AutopilotOpModePartII extends OpMode {
     private DcMotor BackRight;
     private DcMotor Intake;
     private DcMotor Spinner;
+    private DcMotor Intake2;
+    private DcMotor Slide;
     double drive;
     double turn;
     double strafe;
     double force;
     double spin;
+    double slide;
     double frontLeftPower;
     double frontRightPower;
     double backLeftPower;
     double backRightPower;
     double intakePower;
     double spinnerPower;
+    double slidePower;
     boolean protectionMode;
     double multiplier;
     int intakeSetting;
@@ -57,12 +61,14 @@ public class AutopilotOpModePartII extends OpMode {
         strafe = 0.0;
         force = 0.0;
         spin = 0.0;
+        slide = 0.0;
         frontLeftPower = 0.0;
         frontRightPower = 0.0;
         backLeftPower = 0.0;
         backRightPower = 0.0;
         intakePower = 0.0;
         spinnerPower = 0.0;
+        slidePower = 0.0;
         protectionMode = true;
         multiplier = 0.25;
         intakeSetting = 1;
@@ -82,6 +88,8 @@ public class AutopilotOpModePartII extends OpMode {
         BackRight = hardwareMap.get(DcMotor.class, "BackRight");
         Intake = hardwareMap.get(DcMotor.class, "Intake");
         Spinner = hardwareMap.get(DcMotor.class, "Spinner");
+        Intake2 = hardwareMap.get(DcMotor.class, "Intake2");
+        Slide = hardwareMap.get(DcMotor.class, "Slide");
 
 
 
@@ -94,6 +102,8 @@ public class AutopilotOpModePartII extends OpMode {
         BackRight.setDirection(DcMotor.Direction.FORWARD);
         Intake.setDirection(DcMotor.Direction.FORWARD);
         Spinner.setDirection(DcMotor.Direction.FORWARD);
+        Intake2.setDirection(DcMotor.Direction.FORWARD);
+        Slide.setDirection(DcMotor.Direction.FORWARD);
 
 
         FrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -102,6 +112,8 @@ public class AutopilotOpModePartII extends OpMode {
         BackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         // Tell the driver that initialization is complete.
@@ -141,10 +153,11 @@ public class AutopilotOpModePartII extends OpMode {
     public void loop() {
         if (gamepad1.b) {
             if (gamepad1.right_trigger > 0.5) {
-                /*(double y_coordinate = -gamepad1.left_stick_x;
+                double y_coordinate = -gamepad1.left_stick_x;
                 double x_coordinate = -gamepad1.left_stick_y;
                 telemetry.addLine("tracking mode on");
                 double distance = Math.sqrt(Math.pow(x_coordinate, 2) + Math.pow(y_coordinate, 2));
+                /*
                 telemetry.addLine(String.valueOf(distance));
                 telemetry.addLine(String.valueOf(y_coordinate));
                 telemetry.addLine(String.valueOf(x_coordinate));
@@ -154,7 +167,6 @@ public class AutopilotOpModePartII extends OpMode {
                 telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
                 telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
                 telemetry.update();
-                idle();
                 if (distance > 0.0) {
                     double angle = 50 * Math.asin(y_coordinate / distance);
                     telemetry.addLine(String.valueOf(angle));
@@ -215,12 +227,14 @@ public class AutopilotOpModePartII extends OpMode {
                     while (k < 200000) {
                         intakePower = Range.clip(1.0, -1.0, 1.0) * 0.8;
                         Intake.setPower(-intakePower);
+                        Intake2.setPower(-intakePower);
                         k++;
                     }
                     Intake.setPower(0);
                 }
             }
         } else {
+            slide = gamepad2.right_trigger;
             if (gamepad1.a) {
                 protectionMode = false;
                 multiplier = 1.0;
@@ -276,6 +290,7 @@ public class AutopilotOpModePartII extends OpMode {
             turn = -gamepad1.right_stick_x;
             spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
             intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
+            slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
             frontLeftPower = Range.clip(drive + turn + strafe, -1.0, 1.0) * 0.8;
             frontRightPower = Range.clip(drive - turn - strafe, -1.0, 1.0) * 0.8;
             backLeftPower = Range.clip(drive + turn - strafe, -1.0, 1.0) * 0.8;
@@ -300,6 +315,8 @@ public class AutopilotOpModePartII extends OpMode {
             BackRight.setPower(multiplier * backRightPower);
             Intake.setPower(intakeFactor * intakePower);
             Spinner.setPower(spinFactor * spinnerPower);
+            Intake2.setPower(intakeFactor * intakePower);
+            Slide.setPower(slidePower);
         }
         telemetry.update();
     }

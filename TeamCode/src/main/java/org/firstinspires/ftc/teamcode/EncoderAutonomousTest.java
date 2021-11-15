@@ -5,17 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Autonomous(name="Drive Encoder", group="Exercises")
-private DcMotor FrontLeft; //Declared  but not initialized
-private DcMotor FrontRight;
-private DcMotor BackLeft;
-private DcMotor BackRight;
-
-public class DriveWithEncoder extends LinearOpMode
+public class EncoderAutonomousTest extends LinearOpMode
 {
-    DcMotor leftMotor;
-    DcMotor rightMotor;
+    private DcMotor FrontLeft; //Declared  but not initialized
+    private DcMotor FrontRight;
+    private DcMotor BackLeft;
+    private DcMotor BackRight;
 
-    @Override
     public void runOpMode() throws InterruptedException
     {
 
@@ -107,7 +103,7 @@ public class DriveWithEncoder extends LinearOpMode
         FrontRight.setPower(-0.25);
         BackRight.setPower(-0.25);
 
-        while (opModeIsActive() && FrontLeft.getCurrentPosition() > frontLeft.getTargetPosition())
+        while (opModeIsActive() && FrontLeft.getCurrentPosition() > FrontLeft.getTargetPosition())
         {
             telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
             telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
