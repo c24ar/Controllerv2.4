@@ -162,10 +162,6 @@ public class AutopilotOpModePartII extends OpMode {
                 telemetry.addLine(String.valueOf(y_coordinate));
                 telemetry.addLine(String.valueOf(x_coordinate));
                 */
-                telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
-                telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
-                telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
-                telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
                 telemetry.update();
                 if (distance > 0.0) {
                     double angle = 50 * Math.asin(y_coordinate / distance);
@@ -301,13 +297,17 @@ public class AutopilotOpModePartII extends OpMode {
 
             // public double clip(double number, double min, double max)
 
-            telemetry.addData("drive", drive);
+/*            telemetry.addData("drive", drive);
             telemetry.addData("turn", turn);
             telemetry.addData("strafe", strafe);
             telemetry.addData("force", force);
             telemetry.addData("spin", spin);
             telemetry.addData("intakeSetting", intakeSetting);
-            telemetry.addData("spinnerSetting", spinnerSetting);
+            telemetry.addData("spinnerSetting", spinnerSetting);*/
+            telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
+            telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
+            telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
+            telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
             telemetry.update();
             FrontLeft.setPower(multiplier * frontLeftPower);
             FrontRight.setPower(multiplier * frontRightPower);
