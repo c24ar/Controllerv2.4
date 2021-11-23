@@ -332,7 +332,7 @@ public class AutopilotOpModePartII extends OpMode {
 
             // public double clip(double number, double min, double max)
 
-/*            telemetry.addData("drive", drive);
+/*           telemetry.addData("drive", drive);
             telemetry.addData("turn", turn);
             telemetry.addData("strafe", strafe);
             telemetry.addData("force", force);
