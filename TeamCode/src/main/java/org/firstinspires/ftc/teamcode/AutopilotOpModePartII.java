@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -24,6 +25,12 @@ public class AutopilotOpModePartII extends OpMode {
     private DcMotor Spinner;
     private DcMotor Intake2;
     private DcMotor Slide;
+    private Servo Arm;
+    private Servo Claw;
+    double MIN_POSITION;
+    double MAX_POSITION;
+    double ArmPos;
+    double ClawPos;
     double drive;
     double turn;
     double strafe;
@@ -47,10 +54,6 @@ public class AutopilotOpModePartII extends OpMode {
     double spinFactor;
     boolean checker;
     boolean rotation;
-    //private DcMotor Intake;
-    //private DcMotor IntakeRight;
-    //private DcMotor Treadmill;
-    //private Servo FoundationServo;
     public double startTime = runtime.milliseconds();
 
     @Override
@@ -78,6 +81,10 @@ public class AutopilotOpModePartII extends OpMode {
         spinFactor = 0.0;
         checker = false;
         rotation = false;
+        MIN_POSITION = 0;
+        MAX_POSITION = 1;
+        ArmPos = 0.5;
+        ClawPos = 0.5;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -90,6 +97,8 @@ public class AutopilotOpModePartII extends OpMode {
         Spinner = hardwareMap.get(DcMotor.class, "Spinner");
         Intake2 = hardwareMap.get(DcMotor.class, "Intake2");
         Slide = hardwareMap.get(DcMotor.class, "Slide");
+        Arm = hardwareMap.get(Servo.class, "Arm");
+        Claw = hardwareMap.get(Servo.class, "Claw");
 
 
 
@@ -137,20 +146,21 @@ public class AutopilotOpModePartII extends OpMode {
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
-
+    //key press function
     public boolean checking(boolean key) {
         if (key) {
-            checker = true;
+            this.checker = true;
         }
-        if (checker) {
+        if (this.checker) {
             if (!key) {
-                checker = false;
+                this.checker = false;
                 return true;
             }
         }
         return false;
     }
     public void loop() {
+        //tracking object mode
         if (gamepad1.b) {
             if (gamepad1.right_trigger > 0.5) {
                 double y_coordinate = -gamepad1.left_stick_x;
@@ -223,14 +233,36 @@ public class AutopilotOpModePartII extends OpMode {
                     while (k < 200000) {
                         intakePower = Range.clip(1.0, -1.0, 1.0) * 0.8;
                         Intake.setPower(-intakePower);
-                        Intake2.setPower(-intakePower);
+                        Intake2.setPower(intakePower);
                         k++;
                     }
                     Intake.setPower(0);
+                    Intake2.setPower(0);
                 }
             }
         } else {
-            slide = gamepad2.right_trigger;
+            //Claw controls
+            ArmPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
+            if (ArmPos < 0.3) {
+                ClawPos = 1.0;
+            }
+            if (gamepad2.b) {
+                ClawPos = 1.0;
+            }
+            else {
+                ClawPos = 0.0;
+            }
+            //Slide controls
+            if (gamepad2.y) {
+                slide = 1.0;
+            }
+            if (gamepad2.a) {
+                slide = -1.0;
+            }
+            if (!gamepad2.a && !gamepad2.y) {
+                slide = 0.1;
+            }
+            //Other modes
             if (gamepad1.a) {
                 protectionMode = false;
                 multiplier = 1.0;
@@ -239,8 +271,8 @@ public class AutopilotOpModePartII extends OpMode {
                 protectionMode = true;
                 multiplier = 0.25;
             }
+            //Intake + Spinner settings
             if (checking(gamepad1.dpad_right)) {
-
                 intakeSetting = intakeSetting + 1;
                 if (intakeSetting > 2) {
                     intakeSetting = 1;
@@ -265,7 +297,7 @@ public class AutopilotOpModePartII extends OpMode {
                 spinFactor = -1.0;
             }
 
-            //Forward/backward and strafing with the left stick, turning with the right
+            //Using the spinner
             if (gamepad1.left_trigger < 0.5) {
                 rotation = true;
             }
@@ -280,10 +312,13 @@ public class AutopilotOpModePartII extends OpMode {
             if (!rotation) {
                 spin = 0.0;
             }
+            //Movement variables based on user inputs
             force = gamepad1.right_trigger;
             drive = gamepad1.left_stick_y;
             strafe = -gamepad1.left_stick_x;
             turn = -gamepad1.right_stick_x;
+            ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
+            ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);
             spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
             intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
             slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
@@ -304,18 +339,22 @@ public class AutopilotOpModePartII extends OpMode {
             telemetry.addData("spin", spin);
             telemetry.addData("intakeSetting", intakeSetting);
             telemetry.addData("spinnerSetting", spinnerSetting);*/
+            //Telemetry
             telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
             telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
             telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
             telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
             telemetry.update();
+            //Sets all of the motors
+            Arm.setPosition(ArmPos);
+            Claw.setPosition(ClawPos);
             FrontLeft.setPower(multiplier * frontLeftPower);
             FrontRight.setPower(multiplier * frontRightPower);
             BackLeft.setPower(multiplier * backLeftPower);
             BackRight.setPower(multiplier * backRightPower);
             Intake.setPower(intakeFactor * intakePower);
             Spinner.setPower(spinFactor * spinnerPower);
-            Intake2.setPower(intakeFactor * intakePower);
+            Intake2.setPower(-intakeFactor * intakePower);
             Slide.setPower(slidePower);
         }
         telemetry.update();
