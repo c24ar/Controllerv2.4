@@ -238,7 +238,7 @@ public class AutopilotOpModePartII extends OpMode {
             }
         } else {
             //Claw + arm controls
-            armPos = (gamepad2.right_trigger)/2.5 + 0.6;
+            armPos = (Math.pow(gamepad2.right_trigger, 3))/2.5 + 0.6;
             if (armPos < 0.65) {
                 clawPos = 0.3;
             }
@@ -259,17 +259,17 @@ public class AutopilotOpModePartII extends OpMode {
                 slide = 0.0;
             }
             //Intake + Spinner settings
-            if (checking(gamepad1.dpad_right)) {
-                intakeSetting = intakeSetting + 1;
-                if (intakeSetting > 2) {
-                    intakeSetting = 1;
-                }
+            if (gamepad1.dpad_up) {
+                intakeSetting = 1;
             }
-            if (checking(gamepad1.dpad_left)) {
-                spinnerSetting = spinnerSetting + 1;
-                if (spinnerSetting > 2) {
-                    spinnerSetting = 1;
-                }
+            if (gamepad1.dpad_down) {
+                intakeSetting = 2;
+            }
+            if (gamepad1.dpad_left) {
+                spinnerSetting = 1;
+            }
+            if (gamepad1.dpad_right) {
+                spinnerSetting = 2;
             }
             if (intakeSetting == 1) {
                 intakeFactor = 1.0;
