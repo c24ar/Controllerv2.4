@@ -238,8 +238,8 @@ public class AutopilotOpModePartII extends OpMode {
             }
         } else {
             //Claw + arm controls
-            armPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
-            if (armPos < 0.3) {
+            armPos = (gamepad2.right_trigger)/2.5 + 0.6;
+            if (armPos < 0.65) {
                 clawPos = 0.3;
             }
             if (gamepad2.b) {
@@ -256,7 +256,7 @@ public class AutopilotOpModePartII extends OpMode {
                 slide = 1.0;
             }
             if (!gamepad2.a && !gamepad2.y) {
-                slide = -0.225;
+                slide = 0.0;
             }
             //Intake + Spinner settings
             if (checking(gamepad1.dpad_right)) {
