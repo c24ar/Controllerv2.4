@@ -29,8 +29,8 @@ public class AutopilotOpModePartII extends OpMode {
     private Servo Claw;
     double MIN_POSITION;
     double MAX_POSITION;
-    double ArmPos;
-    double ClawPos;
+    double armPos;
+    double clawPos;
     double drive;
     double turn;
     double strafe;
@@ -44,7 +44,6 @@ public class AutopilotOpModePartII extends OpMode {
     double intakePower;
     double spinnerPower;
     double slidePower;
-    boolean protectionMode;
     double multiplier;
     int intakeSetting;
     int spinnerSetting;
@@ -72,8 +71,7 @@ public class AutopilotOpModePartII extends OpMode {
         intakePower = 0.0;
         spinnerPower = 0.0;
         slidePower = 0.0;
-        protectionMode = true;
-        multiplier = 0.25;
+        multiplier = 1.0;
         intakeSetting = 1;
         spinnerSetting = 1;
         intakeFactor = 1.0;
@@ -83,8 +81,8 @@ public class AutopilotOpModePartII extends OpMode {
         rotation = false;
         MIN_POSITION = 0;
         MAX_POSITION = 1;
-        ArmPos = 0.5;
-        ClawPos = 0.5;
+        armPos = 0.5;
+        clawPos = 0.9;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -160,20 +158,17 @@ public class AutopilotOpModePartII extends OpMode {
         return false;
     }
     public void loop() {
-        //tracking object mode
+        //tracking object mode: User input towards object and robot automatically connects
         if (gamepad1.b) {
             if (gamepad1.right_trigger > 0.5) {
                 double y_coordinate = -gamepad1.left_stick_x;
                 double x_coordinate = -gamepad1.left_stick_y;
                 telemetry.addLine("tracking mode on");
                 double distance = Math.sqrt(Math.pow(x_coordinate, 2) + Math.pow(y_coordinate, 2));
-                /*
-                telemetry.addLine(String.valueOf(distance));
-                telemetry.addLine(String.valueOf(y_coordinate));
-                telemetry.addLine(String.valueOf(x_coordinate));
-                */
                 telemetry.update();
                 if (distance > 0.0) {
+                    //distance input is determined by stick position magnitude
+                    //angle input is determined by stick position angle
                     double angle = 50 * Math.asin(y_coordinate / distance);
                     telemetry.addLine(String.valueOf(angle));
                     int p = 0;
@@ -225,6 +220,7 @@ public class AutopilotOpModePartII extends OpMode {
                             j++;
                         }
                     }
+                    //lines above control how motors are activated to conform to angle and distance values
                     FrontLeft.setPower(0);
                     FrontRight.setPower(0);
                     BackLeft.setPower(0);
@@ -241,35 +237,26 @@ public class AutopilotOpModePartII extends OpMode {
                 }
             }
         } else {
-            //Claw controls
-            ArmPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
-            if (ArmPos < 0.3) {
-                ClawPos = 1.0;
+            //Claw + arm controls
+            armPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
+            if (armPos < 0.3) {
+                clawPos = 0.3;
             }
             if (gamepad2.b) {
-                ClawPos = 1.0;
+                clawPos = 0.3;
             }
             else {
-                ClawPos = 0.0;
+                clawPos = 0.9;
             }
             //Slide controls
             if (gamepad2.y) {
-                slide = 1.0;
-            }
-            if (gamepad2.a) {
                 slide = -1.0;
             }
+            if (gamepad2.a) {
+                slide = 1.0;
+            }
             if (!gamepad2.a && !gamepad2.y) {
-                slide = 0.1;
-            }
-            //Other modes
-            if (gamepad1.a) {
-                protectionMode = false;
-                multiplier = 1.0;
-            }
-            if (gamepad1.a && gamepad1.y) {
-                protectionMode = true;
-                multiplier = 0.25;
+                slide = -0.225;
             }
             //Intake + Spinner settings
             if (checking(gamepad1.dpad_right)) {
@@ -317,8 +304,8 @@ public class AutopilotOpModePartII extends OpMode {
             drive = gamepad1.left_stick_y;
             strafe = -gamepad1.left_stick_x;
             turn = -gamepad1.right_stick_x;
-            ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
-            ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);
+/*            ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
+            ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);*/
             spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
             intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
             slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
@@ -340,14 +327,17 @@ public class AutopilotOpModePartII extends OpMode {
             telemetry.addData("intakeSetting", intakeSetting);
             telemetry.addData("spinnerSetting", spinnerSetting);*/
             //Telemetry
-            telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
-            telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
-            telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
-            telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
+//            telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
+//            telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
+//            telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
+//            telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
+            telemetry.addData("Claw Position", clawPos);
+            telemetry.addData("Arm Position", armPos);
+
             telemetry.update();
             //Sets all of the motors
-            Arm.setPosition(ArmPos);
-            Claw.setPosition(ClawPos);
+            Arm.setPosition(armPos);
+            Claw.setPosition(clawPos);
             FrontLeft.setPower(multiplier * frontLeftPower);
             FrontRight.setPower(multiplier * frontRightPower);
             BackLeft.setPower(multiplier * backLeftPower);
