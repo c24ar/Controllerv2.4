@@ -161,202 +161,122 @@ public class AutopilotOpModePartII extends OpMode {
     }
     public void loop() {
         //tracking object mode
-        if (gamepad1.b) {
-            if (gamepad1.right_trigger > 0.5) {
-                double y_coordinate = -gamepad1.left_stick_x;
-                double x_coordinate = -gamepad1.left_stick_y;
-                telemetry.addLine("tracking mode on");
-                double distance = Math.sqrt(Math.pow(x_coordinate, 2) + Math.pow(y_coordinate, 2));
-                /*
-                telemetry.addLine(String.valueOf(distance));
-                telemetry.addLine(String.valueOf(y_coordinate));
-                telemetry.addLine(String.valueOf(x_coordinate));
-                */
-                telemetry.update();
-                if (distance > 0.0) {
-                    double angle = 50 * Math.asin(y_coordinate / distance);
-                    telemetry.addLine(String.valueOf(angle));
-                    int p = 0;
-                    while (p < (300 * Math.abs(angle * y_coordinate))) {
-                        if (x_coordinate < 0) {
-                            frontLeftPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                            frontRightPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                            backLeftPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                            backRightPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                            FrontLeft.setPower(0.5 * frontLeftPower);
-                            FrontRight.setPower(0.5 * frontRightPower);
-                            BackLeft.setPower(0.5 * backLeftPower);
-                            BackRight.setPower(0.5 * backRightPower);
-                        }
-                        if (x_coordinate >= 0) {
-                            frontLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                            frontRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                            backLeftPower = Range.clip(angle, -1.0, 1.0) * 0.8;
-                            backRightPower = Range.clip(-angle, -1.0, 1.0) * 0.8;
-                            FrontLeft.setPower(0.5 * frontLeftPower);
-                            FrontRight.setPower(0.5 * frontRightPower);
-                            BackLeft.setPower(0.5 * backLeftPower);
-                            BackRight.setPower(0.5 * backRightPower);
-                        }
-                        p++;
-                    }
-                    int j = 0;
-                    while (j < (20000 * distance)) {
-                        if (x_coordinate < 0) {
-                            frontLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                            frontRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                            backLeftPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                            backRightPower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                            FrontLeft.setPower(0.5 * frontLeftPower);
-                            FrontRight.setPower(0.5 * frontRightPower);
-                            BackLeft.setPower(0.5 * backLeftPower);
-                            BackRight.setPower(0.5 * backRightPower);
-                            j++;
-                        }
-                        if (x_coordinate >= 0) {
-                            frontLeftPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
-                            frontRightPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
-                            backLeftPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
-                            backRightPower = Range.clip(-1.0, -1.0, 1.0) * 0.8;
-                            FrontLeft.setPower(0.5 * frontLeftPower);
-                            FrontRight.setPower(0.5 * frontRightPower);
-                            BackLeft.setPower(0.5 * backLeftPower);
-                            BackRight.setPower(0.5 * backRightPower);
-                            j++;
-                        }
-                    }
-                    FrontLeft.setPower(0);
-                    FrontRight.setPower(0);
-                    BackLeft.setPower(0);
-                    BackRight.setPower(0);
-                    int k = 0;
-                    while (k < 200000) {
-                        intakePower = Range.clip(1.0, -1.0, 1.0) * 0.8;
-                        Intake.setPower(-intakePower);
-                        Intake2.setPower(intakePower);
-                        k++;
-                    }
-                    Intake.setPower(0);
-                    Intake2.setPower(0);
-                }
+        
+        //Claw controls
+        ArmPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
+        if (ArmPos < 0.3) {
+            ClawPos = 1.0;
+        }
+        if (gamepad2.b) {
+            ClawPos = 1.0;
+        }
+        else {
+            ClawPos = 0.0;
+        }
+        //Slide controls
+        if (gamepad2.y) {
+            slide = 1.0;
+        }
+        if (gamepad2.a) {
+            slide = -1.0;
+        }
+        if (!gamepad2.a && !gamepad2.y) {
+            slide = 0.1;
+        }
+        //Other modes
+        if (gamepad1.a) {
+            protectionMode = false;
+            multiplier = 1.0;
+        }
+        if (gamepad1.a && gamepad1.y) {
+            protectionMode = true;
+            multiplier = 0.25;
+        }
+        //Intake + Spinner settings
+        if (checking(gamepad1.dpad_right)) {
+            intakeSetting = intakeSetting + 1;
+            if (intakeSetting > 2) {
+                intakeSetting = 1;
             }
-        } else {
-            //Claw controls
-            ArmPos = (gamepad2.right_trigger - gamepad2.left_trigger)/2 + 0.5;
-            if (ArmPos < 0.3) {
-                ClawPos = 1.0;
+        }
+        if (checking(gamepad1.dpad_left)) {
+            spinnerSetting = spinnerSetting + 1;
+            if (spinnerSetting > 2) {
+                spinnerSetting = 1;
             }
-            if (gamepad2.b) {
-                ClawPos = 1.0;
-            }
-            else {
-                ClawPos = 0.0;
-            }
-            //Slide controls
-            if (gamepad2.y) {
-                slide = 1.0;
-            }
-            if (gamepad2.a) {
-                slide = -1.0;
-            }
-            if (!gamepad2.a && !gamepad2.y) {
-                slide = 0.1;
-            }
-            //Other modes
-            if (gamepad1.a) {
-                protectionMode = false;
-                multiplier = 1.0;
-            }
-            if (gamepad1.a && gamepad1.y) {
-                protectionMode = true;
-                multiplier = 0.25;
-            }
-            //Intake + Spinner settings
-            if (checking(gamepad1.dpad_right)) {
-                intakeSetting = intakeSetting + 1;
-                if (intakeSetting > 2) {
-                    intakeSetting = 1;
-                }
-            }
-            if (checking(gamepad1.dpad_left)) {
-                spinnerSetting = spinnerSetting + 1;
-                if (spinnerSetting > 2) {
-                    spinnerSetting = 1;
-                }
-            }
-            if (intakeSetting == 1) {
-                intakeFactor = 1.0;
-            }
-            if (intakeSetting == 2) {
-                intakeFactor = -1.0;
-            }
-            if (spinnerSetting == 1) {
-                spinFactor = 1.0;
-            }
-            if (spinnerSetting == 2) {
-                spinFactor = -1.0;
-            }
+        }
+        if (intakeSetting == 1) {
+            intakeFactor = 1.0;
+        }
+        if (intakeSetting == 2) {
+            intakeFactor = -1.0;
+        }
+        if (spinnerSetting == 1) {
+            spinFactor = 1.0;
+        }
+        if (spinnerSetting == 2) {
+            spinFactor = -1.0;
+        }
 
-            //Using the spinner
+        //Using the spinner
+        if (gamepad1.left_trigger < 0.5) {
+            rotation = true;
+        }
+        if (rotation = true) {
             if (gamepad1.left_trigger < 0.5) {
-                rotation = true;
+                rotation = false;
             }
-            if (rotation = true) {
-                if (gamepad1.left_trigger < 0.5) {
-                    rotation = false;
-                }
-            }
-            if (rotation) {
-                spin = 1.0;
-            }
-            if (!rotation) {
-                spin = 0.0;
-            }
-            //Movement variables based on user inputs
-            force = gamepad1.right_trigger;
-            drive = gamepad1.left_stick_y;
-            strafe = -gamepad1.left_stick_x;
-            turn = -gamepad1.right_stick_x;
-            ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
-            ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);
-            spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
-            intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
-            slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
-            frontLeftPower = Range.clip(drive + turn + strafe, -1.0, 1.0) * 0.8;
-            frontRightPower = Range.clip(drive - turn - strafe, -1.0, 1.0) * 0.8;
-            backLeftPower = Range.clip(drive + turn - strafe, -1.0, 1.0) * 0.8;
-            backRightPower = Range.clip(drive - turn + strafe, -1.0, 1.0) * 0.8;
+        }
+        if (rotation) {
+            spin = 1.0;
+        }
+        if (!rotation) {
+            spin = 0.0;
+        }
+        //Movement variables based on user inputs
+        force = gamepad1.right_trigger;
+        drive = gamepad1.left_stick_y;
+        strafe = -gamepad1.left_stick_x;
+        turn = -gamepad1.right_stick_x;
+        ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
+        ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);
+        spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
+        intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
+        slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
+        frontLeftPower = Range.clip(drive + turn + strafe, -1.0, 1.0) * 0.8;
+        frontRightPower = Range.clip(drive - turn - strafe, -1.0, 1.0) * 0.8;
+        backLeftPower = Range.clip(drive + turn - strafe, -1.0, 1.0) * 0.8;
+        backRightPower = Range.clip(drive - turn + strafe, -1.0, 1.0) * 0.8;
 
-            //make sure left and right power are outside threshold
+        //make sure left and right power are outside threshold
 
 
-            // public double clip(double number, double min, double max)
+        // public double clip(double number, double min, double max)
 
 /*           telemetry.addData("drive", drive);
-            telemetry.addData("turn", turn);
-            telemetry.addData("strafe", strafe);
-            telemetry.addData("force", force);
-            telemetry.addData("spin", spin);
-            telemetry.addData("intakeSetting", intakeSetting);
-            telemetry.addData("spinnerSetting", spinnerSetting);*/
-            //Telemetry
-            telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
-            telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
-            telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
-            telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
-            telemetry.update();
-            //Sets all of the motors
-            Arm.setPosition(ArmPos);
-            Claw.setPosition(ClawPos);
-            FrontLeft.setPower(multiplier * frontLeftPower);
-            FrontRight.setPower(multiplier * frontRightPower);
-            BackLeft.setPower(multiplier * backLeftPower);
-            BackRight.setPower(multiplier * backRightPower);
-            Intake.setPower(intakeFactor * intakePower);
-            Spinner.setPower(spinFactor * spinnerPower);
-            Intake2.setPower(-intakeFactor * intakePower);
-            Slide.setPower(slidePower);
-        }
+        telemetry.addData("turn", turn);
+        telemetry.addData("strafe", strafe);
+        telemetry.addData("force", force);
+        telemetry.addData("spin", spin);
+        telemetry.addData("intakeSetting", intakeSetting);
+        telemetry.addData("spinnerSetting", spinnerSetting);*/
+        //Telemetry
+        telemetry.addData("encoder-front-left", FrontLeft.getCurrentPosition());
+        telemetry.addData("encoder-back-left", BackLeft.getCurrentPosition());
+        telemetry.addData("encoder-front-right", FrontRight.getCurrentPosition());
+        telemetry.addData("encoder-back-right", BackRight.getCurrentPosition());
+        telemetry.update();
+        //Sets all of the motors
+        Arm.setPosition(ArmPos);
+        Claw.setPosition(ClawPos);
+        FrontLeft.setPower(multiplier * frontLeftPower);
+        FrontRight.setPower(multiplier * frontRightPower);
+        BackLeft.setPower(multiplier * backLeftPower);
+        BackRight.setPower(multiplier * backRightPower);
+        Intake.setPower(intakeFactor * intakePower);
+        Spinner.setPower(spinFactor * spinnerPower);
+        Intake2.setPower(-intakeFactor * intakePower);
+        Slide.setPower(slidePower);
         telemetry.update();
     }
 }
