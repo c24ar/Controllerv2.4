@@ -54,6 +54,8 @@ public class AutopilotOpModePartII extends OpMode {
     boolean holdArm;
     int clawMode;
     boolean bWasDown;
+    boolean xWasDown;
+    int armMode;
     public double startTime = runtime.milliseconds();
 
     @Override
@@ -85,6 +87,8 @@ public class AutopilotOpModePartII extends OpMode {
         holdArm = false;
         clawMode = 1;
         bWasDown = false;
+        xWasDown = false;
+        armMode = 0;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -240,11 +244,13 @@ public class AutopilotOpModePartII extends OpMode {
             }
         } else {
             //Claw + arm controls
-            if (gamepad2.dpad_right) {
-                holdArm = true;
-            }
-            if (gamepad2.dpad_left) {
-                holdArm = false;
+            if (gamepad2.x) {
+                if (!xWasDown){
+                    xWasDown = true;
+                    armMode++;
+                }
+            } else {
+                xWasDown = false;
             }
             if (!holdArm) {
                 armPos = (Math.pow(gamepad2.right_trigger, 3)) / 2.5 + 0.6;
@@ -260,6 +266,7 @@ public class AutopilotOpModePartII extends OpMode {
             } else {
                 bWasDown = false;
             }
+            holdArm = armMode % 2 == 0;
             if (clawMode%2 == 0) {
                 clawPos = 0.3;
             }
