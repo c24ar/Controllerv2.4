@@ -27,8 +27,6 @@ public class AutopilotOpModePartII extends OpMode {
     private DcMotor Slide;
     private Servo Arm;
     private Servo Claw;
-    double MIN_POSITION;
-    double MAX_POSITION;
     double armPos;
     double clawPos;
     double drive;
@@ -53,6 +51,9 @@ public class AutopilotOpModePartII extends OpMode {
     double spinFactor;
     boolean checker;
     boolean rotation;
+    boolean holdArm;
+    int clawMode;
+    boolean bWasDown;
     public double startTime = runtime.milliseconds();
 
     @Override
@@ -79,10 +80,11 @@ public class AutopilotOpModePartII extends OpMode {
         spinFactor = 0.0;
         checker = false;
         rotation = false;
-        MIN_POSITION = 0;
-        MAX_POSITION = 1;
         armPos = 0.5;
         clawPos = 0.9;
+        holdArm = false;
+        clawMode = 1;
+        bWasDown = false;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -145,7 +147,7 @@ public class AutopilotOpModePartII extends OpMode {
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
     //key press function
-    public boolean checking(boolean key) {
+    public boolean hold(boolean key) {
         if (key) {
             this.checker = true;
         }
@@ -226,7 +228,7 @@ public class AutopilotOpModePartII extends OpMode {
                     BackLeft.setPower(0);
                     BackRight.setPower(0);
                     int k = 0;
-                    while (k < 200000) {
+                    while (k < 80000) {
                         intakePower = Range.clip(1.0, -1.0, 1.0) * 0.8;
                         Intake.setPower(-intakePower);
                         Intake2.setPower(intakePower);
@@ -238,11 +240,27 @@ public class AutopilotOpModePartII extends OpMode {
             }
         } else {
             //Claw + arm controls
-            armPos = (Math.pow(gamepad2.right_trigger, 3))/2.5 + 0.6;
+            if (gamepad2.dpad_right) {
+                holdArm = true;
+            }
+            if (gamepad2.dpad_left) {
+                holdArm = false;
+            }
+            if (!holdArm) {
+                armPos = (Math.pow(gamepad2.right_trigger, 3)) / 2.5 + 0.6;
+            }
             if (armPos < 0.65) {
                 clawPos = 0.3;
             }
             if (gamepad2.b) {
+                if (!bWasDown){
+                    bWasDown = true;
+                    clawMode++;
+                }
+            } else {
+                bWasDown = false;
+            }
+            if (clawMode%2 == 0) {
                 clawPos = 0.3;
             }
             else {
@@ -304,8 +322,6 @@ public class AutopilotOpModePartII extends OpMode {
             drive = gamepad1.left_stick_y;
             strafe = -gamepad1.left_stick_x;
             turn = -gamepad1.right_stick_x;
-/*            ArmPos = Range.clip(ArmPos, MIN_POSITION, MAX_POSITION);
-            ClawPos = Range.clip(ClawPos, MIN_POSITION, MAX_POSITION);*/
             spinnerPower = Range.clip(spin, -1.0, 1.0) * 0.8;
             intakePower = Range.clip(force, -1.0, 1.0) * 0.8;
             slidePower = Range.clip(slide, -1.0, 1.0) * 0.4;
