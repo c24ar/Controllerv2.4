@@ -56,6 +56,7 @@ public class AutopilotOpModePartII extends OpMode {
     boolean bWasDown;
     boolean xWasDown;
     int armMode;
+    int output;
     public double startTime = runtime.milliseconds();
 
     @Override
@@ -89,6 +90,7 @@ public class AutopilotOpModePartII extends OpMode {
         bWasDown = false;
         xWasDown = false;
         armMode = 0;
+        output = 1;
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -283,6 +285,23 @@ public class AutopilotOpModePartII extends OpMode {
             if (!gamepad2.a && !gamepad2.y) {
                 slide = 0.0;
             }
+            //Full auto movement for arm, claw and slide
+            if (gamepad2.x){
+                if (!xWasDown){
+                    xWasDown = true;
+                    clawMode++;
+                    output ++;
+                }
+            } else {
+                xWasDown = false;
+            }
+            if (output %2 == 0) {
+                armPos = 1;
+                //Do the encoder for slide motor here
+            }
+            if (output%2 == 1) {
+                armPos = 0;
+                //Do the encoder for slides here as well and check if current encoders work
             //Intake + Spinner settings
             if (gamepad1.dpad_up) {
                 intakeSetting = 1;
